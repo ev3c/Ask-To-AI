@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <div class="ai-list" title="Choose AI">
+            <div class="ai-option">
+                <input type="radio" id="chatgpt" name="aiService" value="chatgpt">
+                <label for="chatgpt"><img src="images/chatgpt.png" alt="ChatGPT" class="ai-icon">ChatGPT</label>
+            </div>
+            <div class="ai-option">
+                <input type="radio" id="claude" name="aiService" value="claude">
+                <label for="claude"><img src="images/claude-color.png" alt="Claude" class="ai-icon">Claude</label>
+            </div>
+            <div class="ai-option">
+                <input type="radio" id="deepseek" name="aiService" value="deepseek">
+                <label for="deepseek"><img src="images/deepseek-color.png" alt="DeepSeek" class="ai-icon">DeepSeek</label>
+            </div>
+            <div class="ai-option">
+                <input type="radio" id="copilot" name="aiService" value="copilot">
+                <label for="copilot"><img src="images/copilot-color.png" alt="Copilot" class="ai-icon">Copilot</label>
+            </div>
+            <div class="ai-option">
+                <input type="radio" id="gemini" name="aiService" value="gemini">
+                <label for="gemini"><img src="images/gemini-color.png" alt="Gemini" class="ai-icon">Gemini</label>
+            </div>
+            <div class="ai-option">
+                <input type="radio" id="grok" name="aiService" value="grok">
+                <label for="grok"><img src="images/grok.png" alt="Grok" class="ai-icon">Grok</label>
+            </div>
+            <div class="ai-option">
+                <input type="radio" id="meta" name="aiService" value="meta">
+                <label for="meta"><img src="images/meta-color.png" alt="Meta" class="ai-icon">Meta</label>
+            </div>
+            <div class="ai-option">
+                <input type="radio" id="mistral" name="aiService" value="mistral">
+                <label for="mistral"><img src="images/mistral-color.png" alt="Mistral" class="ai-icon">Mistral</label>
+            </div>
+            <div class="ai-option">
+                <input type="radio" id="google" name="aiService" value="google">
+                <label for="google"><img src="images/google-color.png" alt="Google" class="ai-icon">Google</label>
+            </div>
+            <div class="ai-option">
+                <input type="radio" id="perplexity" name="aiService" value="perplexity">
+                <label for="perplexity"><img src="images/perplexity.png" alt="Perplexity" class="ai-icon">Perplexity</label>
+            </div>
+            <div class="ai-option">
+                <input type="radio" id="allAI" name="aiService" value="allAI">
+                <label for="allAI"><img src="images/all-ai.png" alt="All AI" class="ai-icon">ALL AI</label>
+            </div>
+        </div>
+        <textarea id="askInput" placeholder="Ask to AI" rows="2" title="Write the question"></textarea>
+        <div class="checkbox-container">
+            <label for="addContext" title="Attach to the question">+</label>
+            <input type="checkbox" id="addContext" name="addContext" title="Attach to the question">
+            <span id="contextPreview" class="context-preview"></span>
+        </div>
+        <button id="yesButton">ASK</button>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html> 
