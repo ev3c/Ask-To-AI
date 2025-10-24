@@ -1,5 +1,14 @@
 // Script de fondo que maneja la extensión
 
+// Función para actualizar el menú contextual con la URL actual
+function updateContextMenu(url) {
+  if (url) {
+    chrome.contextMenus.update('askToAIPage', {
+      title: `Ask To AI: ${url}`
+    });
+  }
+}
+
 // Función que se ejecuta cuando se instala la extensión
 chrome.runtime.onInstalled.addListener(() => {
   console.log('🚀 Extensión Ask to AI instalada correctamente');
@@ -30,6 +39,26 @@ chrome.runtime.onInstalled.addListener(() => {
     title: 'Ask To AI: (Current page URL)',
     contexts: ['page']
   });
+});
+
+// Actualizar el menú contextual cuando cambia la pestaña activa
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  chrome.tabs.get(activeInfo.tabId, (tab) => {
+    if (tab.url) {
+      updateContextMenu(tab.url);
+    }
+  });
+});
+
+// Actualizar el menú contextual cuando se actualiza una pestaña
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.url) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0] && tabs[0].id === tabId) {
+        updateContextMenu(changeInfo.url);
+      }
+    });
+  }
 });
 
 // Manejar clicks en el menú contextual
