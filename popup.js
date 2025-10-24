@@ -223,12 +223,52 @@ async function updateContextPreview() {
     }
 }
 
+// Verificar si se abrió desde el menú contextual
+async function checkContextMenuData() {
+    try {
+        const data = await chrome.storage.local.get(['contextSelection', 'contextUrl', 'contextTimestamp']);
+        
+        // Verificar si los datos son recientes (menos de 2 segundos)
+        if (data.contextTimestamp && (Date.now() - data.contextTimestamp) < 2000) {
+            console.log('📋 Datos del menú contextual detectados');
+            
+            // Marcar el checkbox automáticamente
+            document.getElementById('addContext').checked = true;
+            
+            // Actualizar el preview con los datos del contexto
+            const contextPreview = document.getElementById('contextPreview');
+            if (data.contextSelection) {
+                const truncated = data.contextSelection.length > 200 ? 
+                    data.contextSelection.substring(0, 200) + '...' : data.contextSelection;
+                contextPreview.textContent = truncated;
+                console.log('✅ Texto seleccionado cargado desde menú contextual');
+            } else if (data.contextUrl) {
+                contextPreview.textContent = data.contextUrl;
+                console.log('✅ URL cargada desde menú contextual');
+            }
+            
+            // Limpiar los datos para que no se usen de nuevo
+            chrome.storage.local.remove(['contextSelection', 'contextUrl', 'contextTimestamp']);
+            
+            return true;
+        }
+    } catch (error) {
+        console.error('Error verificando datos del menú contextual:', error);
+    }
+    return false;
+}
+
 // Inicializar
 document.addEventListener('DOMContentLoaded', async function() {
     await loadUserPreference();
     
-    // Actualizar el preview del contexto
-    await updateContextPreview();
+    // Verificar si se abrió desde el menú contextual
+    const fromContextMenu = await checkContextMenuData();
+    
+    // Si no es del menú contextual, actualizar el preview normalmente
+    if (!fromContextMenu) {
+        await updateContextPreview();
+    }
     
     // Poner el foco en el campo de pregunta
     const askInput = document.getElementById('askInput');
@@ -271,14 +311,27 @@ document.getElementById('yesButton').addEventListener('click', async function() 
         const addContext = document.getElementById('addContext').checked;
         if (addContext) {
             try {
-                // Intentar obtener el texto seleccionado usando executeScript
-                const selection = await getSelectedText(currentTab.id);
+                // Primero verificar si hay datos del menú contextual
+                const contextData = await chrome.storage.local.get(['contextSelection', 'contextUrl']);
                 
-                if (selection && selection.trim() !== "") {
-                    textPrompt += '\n\n' + selection.trim();
+                if (contextData.contextSelection) {
+                    // Usar el texto seleccionado del menú contextual
+                    textPrompt += '\n\n' + contextData.contextSelection;
+                    console.log('📋 Usando texto del menú contextual');
+                } else if (contextData.contextUrl) {
+                    // Usar la URL del menú contextual
+                    textPrompt += '\n\n' + contextData.contextUrl;
+                    console.log('📋 Usando URL del menú contextual');
                 } else {
-                    // Si no hay texto seleccionado, agregar la URL
-                    textPrompt += '\n\n' + currentTab.url;
+                    // Si no hay datos del menú contextual, obtener de la página actual
+                    const selection = await getSelectedText(currentTab.id);
+                    
+                    if (selection && selection.trim() !== "") {
+                        textPrompt += '\n\n' + selection.trim();
+                    } else {
+                        // Si no hay texto seleccionado, agregar la URL
+                        textPrompt += '\n\n' + currentTab.url;
+                    }
                 }
             } catch (error) {
                 // Si no se puede obtener la selección, solo agregar la URL
@@ -350,6 +403,9 @@ document.getElementById('yesButton').addEventListener('click', async function() 
 
         // Limpiar el cuadro de texto después de enviar
         document.getElementById('askInput').value = '';
+        
+        // Limpiar datos del menú contextual después de usar
+        chrome.storage.local.remove(['contextSelection', 'contextUrl', 'contextTimestamp']);
         
     } catch (error) {
         console.error('Error:', error);

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Ask to AI v1.0.3",
-  "version": "1.0.3",
+  "name": "Ask to AI v1.0.4",
+  "version": "1.0.4",
   "description": "Ask to AI ChatGPT, Claude, DeepSeek, Copilot, Gemini, Grok, Meta, Mistral, Google, Perplexity or ALL AI",
   "action": {
     "default_popup": "popup.html",
@@ -15,10 +15,8 @@
     "activeTab",
     "scripting",
     "storage",
-    "tabs"
-  ],
-  "host_permissions": [
-    "<all_urls>"
+    "tabs",
+    "contextMenus"
   ],
   "background": {
     "service_worker": "background.js"
