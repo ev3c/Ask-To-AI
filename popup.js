@@ -64,6 +64,92 @@ async function saveUserPreference(selectedAI) {
     }
 }
 
+// Guardar prompt usado
+async function savePromptUsage(prompt) {
+    try {
+        // Obtener el historial actual
+        const result = await chrome.storage.local.get(['promptHistory']);
+        let promptHistory = result.promptHistory || {};
+        
+        // Actualizar contador del prompt
+        if (promptHistory[prompt]) {
+            promptHistory[prompt]++;
+        } else {
+            promptHistory[prompt] = 1;
+        }
+        
+        // Guardar de vuelta
+        await chrome.storage.local.set({ promptHistory: promptHistory });
+        
+        // Actualizar la visualización
+        await displayFrequentPrompts();
+    } catch (error) {
+        console.error('Error guardando prompt:', error);
+    }
+}
+
+// Obtener los 5 prompts más usados
+async function getTopPrompts() {
+    try {
+        const result = await chrome.storage.local.get(['promptHistory']);
+        const promptHistory = result.promptHistory || {};
+        
+        // Convertir a array y ordenar por uso
+        const promptArray = Object.entries(promptHistory)
+            .map(([prompt, count]) => ({ prompt, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5);
+        
+        return promptArray;
+    } catch (error) {
+        console.error('Error obteniendo prompts frecuentes:', error);
+        return [];
+    }
+}
+
+// Mostrar prompts frecuentes en la interfaz
+async function displayFrequentPrompts() {
+    const topPrompts = await getTopPrompts();
+    const container = document.getElementById('frequentPromptsContainer');
+    const list = document.getElementById('frequentPromptsList');
+    
+    // Si no hay prompts, ocultar el contenedor
+    if (topPrompts.length === 0) {
+        container.classList.add('hidden');
+        return;
+    }
+    
+    // Mostrar el contenedor y limpiar la lista
+    container.classList.remove('hidden');
+    list.innerHTML = '';
+    
+    // Crear elementos para cada prompt
+    topPrompts.forEach(item => {
+        const promptElement = document.createElement('div');
+        promptElement.className = 'frequent-prompt-item';
+        promptElement.title = item.prompt; // Mostrar completo en tooltip
+        
+        const promptText = document.createElement('span');
+        promptText.className = 'prompt-text';
+        promptText.textContent = item.prompt;
+        
+        const promptCount = document.createElement('span');
+        promptCount.className = 'prompt-count';
+        promptCount.textContent = `×${item.count}`;
+        
+        promptElement.appendChild(promptText);
+        promptElement.appendChild(promptCount);
+        
+        // Añadir evento de clic para rellenar el campo
+        promptElement.addEventListener('click', () => {
+            document.getElementById('askInput').value = item.prompt;
+            document.getElementById('askInput').focus();
+        });
+        
+        list.appendChild(promptElement);
+    });
+}
+
 // Obtener servicio seleccionado
 function getSelectedAI() {
     const selectedRadio = document.querySelector('input[name="aiService"]:checked');
@@ -270,6 +356,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         await updateContextPreview();
     }
     
+    // Mostrar prompts frecuentes
+    await displayFrequentPrompts();
+    
     // Poner el foco en el campo de pregunta
     const askInput = document.getElementById('askInput');
     askInput.focus();
@@ -306,6 +395,9 @@ document.getElementById('yesButton').addEventListener('click', async function() 
             this.disabled = false;
             return;
         }
+        
+        // Guardar el prompt original (sin contexto) en el historial
+        await savePromptUsage(textPrompt);
 
         // Agregar contexto si el checkbox está marcado
         const addContext = document.getElementById('addContext').checked;
